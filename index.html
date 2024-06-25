@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title> Owen's Strategy</title>
+
+</head>
+<body>
+    <h1>Welcome to Owen's strategy</h1>
+    <style>
+        body{
+           background-color: black; 
+        }
+        p{
+            color: white;
+            text-align: center; 
+        }
+        h1{
+            color: white;
+            text-align: center;
+        }
+        h4{
+            color: white;
+            text-align: center;
+        }
+        #game-container {
+            text-align: right;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(7, 50px);
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+        .tile {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .player { background-color: #4CAF50; color: white; }
+        .enemy { background-color: #F44336; color: white; }
+        .neutral { background-color: #FFFFFF; }
+        .inactive { background-color: #333; }
+        #restart-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+    <h4>About Me</h4>
+    <p>
+        I am Owen Dennee, a sophomore at Hermantown High School with a passion for logic, numbers, and strategic thinking. My analytical mindset drives my academic pursuits and extracurricular interests alike.
+        As an avid motorsports enthusiast, I not only enjoy watching races but also actively participate in the sport. The technical aspects of racing, from vehicle dynamics to race strategy, fascinate me and align well with my logical approach to problem-solving.
+        Soccer is another sport close to my heart. I appreciate the tactical nature of the game, which allows me to apply my strategic thinking on the field. The combination of physical skill and mental acuity required in soccer perfectly complements my interests.
+        In addition to these structured activities, I have a deep appreciation for the outdoors. Spending time in nature provides me with opportunities to apply my analytical skills in practical, real-world scenarios, whether it's navigating trails or observing natural phenomena.
+        My affinity for numbers extends beyond the classroom. I find joy in quantitative analysis and using data to inform decisions. This love for mathematics and logic has led me to join the Hermantown FRC (FIRST Robotics Competition) team. As a team member, I contribute my planning and strategic skills to design, build, and program robots for competition.
+        History, particularly military history, is another area that captivates my interest. I am fascinated by the strategic and tactical decisions made throughout history. Studying war tactics not only satisfies my curiosity about the past but also enhances my understanding of complex problem-solving in high-stakes situations. This interest in history extends beyond warfare, encompassing a broad appreciation for how past events shape our present world.
+        My diverse interests in motorsports, soccer, robotics, and history all share common threads of strategy, planning, and analytical thinking. As I progress through high school, I look forward to further developing these skills and applying them to new challenges and opportunities.
+</p>
+<img src="download.jpg" height="450px">
+    <img src="F2.jpg" height="450px">
+    <div id="game-container">
+        <h2>Capture more tiles than the enemy!</h2>
+        <div id="game-board"></div>
+        <p id="status"></p>
+        <button id="restart-btn">Restart Game</button>
+    </div>
+
+    <script>
+        const board = document.getElementById('game-board');
+        const status = document.getElementById('status');
+        const restartBtn = document.getElementById('restart-btn');
+        let playerTurn = true;
+        
+        const boardLayout = [
+            1,1,1,1,1,0,0,
+            1,1,1,1,1,1,0,
+            1,1,1,1,1,1,1,
+            1,1,1,1,1,1,0,
+            0,1,1,1,1,1,0,
+        ];
+
+        function createBoard() {
+            board.innerHTML = ''; // Clear the board
+            boardLayout.forEach((active, i) => {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                if (active) {
+                    tile.classList.add('neutral');
+                    tile.addEventListener('click', () => handleClick(tile));
+                } else {
+                    tile.classList.add('inactive');
+                }
+                board.appendChild(tile);
+            });
+
+            // Set initial tiles randomly
+            const activeTiles = Array.from(board.children).filter(t => t.classList.contains('neutral'));
+            const [playerTile, enemyTile] = getRandomTiles(activeTiles, 2);
+            playerTile.classList.replace('neutral', 'player');
+            enemyTile.classList.replace('neutral', 'enemy');
+        }
+
+        function getRandomTiles(tiles, count) {
+            const shuffled = tiles.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function handleClick(tile) {
+            if (!playerTurn) return;
+            if (tile.classList.contains('neutral') && isAdjacentTo(tile, 'player')) {
+                tile.classList.replace('neutral', 'player');
+                playerTurn = false;
+                status.textContent = "Enemy's turn";
+                setTimeout(enemyTurn, 1000);
+            }
+        }
+
+        function isAdjacentTo(tile, type) {
+            const index = Array.from(board.children).indexOf(tile);
+            const adjacentIndices = [index-7, index+7, index-1, index+1];
+            return adjacentIndices.some(i => {
+                if (i >= 0 && i < boardLayout.length && boardLayout[i]) {
+                    return board.children[i].classList.contains(type);
+                }
+                return false;
+            });
+        }
+
+        function enemyTurn() {
+            const neutralTiles = Array.from(board.children).filter(t => t.classList.contains('neutral'));
+            const adjacentTiles = neutralTiles.filter(t => isAdjacentTo(t, 'enemy'));
+            if (adjacentTiles.length > 0) {
+                const randomTile = adjacentTiles[Math.floor(Math.random() * adjacentTiles.length)];
+                randomTile.classList.replace('neutral', 'enemy');
+            }
+            playerTurn = true;
+            status.textContent = "Your turn";
+            checkGameEnd();
+        }
+
+        function checkGameEnd() {
+            const playerTiles = Array.from(board.children).filter(t => t.classList.contains('player'));
+            const enemyTiles = Array.from(board.children).filter(t => t.classList.contains('enemy'));
+            const neutralTiles = Array.from(board.children).filter(t => t.classList.contains('neutral'));
+            if (neutralTiles.length === 0) {
+                if (playerTiles.length > enemyTiles.length) {
+                    status.textContent = "You win!";
+                } else if (playerTiles.length < enemyTiles.length) {
+                    status.textContent = "Enemy wins!";
+                } else {
+                    status.textContent = "It's a tie!";
+                }
+                playerTurn = false;
+            }
+        }
+
+        function restartGame() {
+            playerTurn = true;
+            createBoard();
+            status.textContent = "Your turn";
+        }
+
+        restartBtn.addEventListener('click', restartGame);
+
+        restartGame(); // Initial game setup
+    </script>
+    <video src="Mongolian.mp4" height="500" controls poster="Marching Mongolian army">
+      </video>
+      <img src="Wargame.jpg" height="450">
+</body>
+
+</html>
