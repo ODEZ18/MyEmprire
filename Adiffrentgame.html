@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owen's Emprie</title>
+    <style>
+        title{
+            color: white;
+        }
+       a{
+        color: #ffffff;
+       }
+       h1{
+        color: white;
+       }
+       p{color: #ffffff; 
+        text-align: center;
+        max-width: 750px;
+        margin: 0 auto;
+    }
+        h3{color:#ffffff;
+        text-align: center;}
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #000000; }
+        #game-container { display: flex; justify-content: space-between; max-width: 1200px; margin: 0 auto; }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            gap: 2px;
+            background-color: #4a4a4a;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            background-color: #8a8a8a;
+            border: 1px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        .cell:hover { background-color: #9a9a9a; }
+        .player-structure { background-color: #4CAF50; }
+        .ai-structure { background-color: #F44336; }
+        #player-info, #ai-info { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .resource, .building { margin-bottom: 10px; }
+        button { margin-top: 10px; padding: 5px 10px; cursor: pointer; }
+        #message-log { margin-top: 20px; height: 100px; overflow-y: scroll; background-color: rgb(105, 105, 105); padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Empire Builder</h1>
+    <div id="game-container">
+        <div id="player-info">
+            <h2>Player Empire</h2>
+            <div class="resource">Gold: <span id="player-gold">100</span></div>
+            <div class="resource">Wood: <span id="player-wood">50</span></div>
+            <div class="resource">Stone: <span id="player-stone">30</span></div>
+            <div class="building">Houses: <span id="player-houses">0</span></div>
+            <div class="building">Farms: <span id="player-farms">0</span></div>
+            <div class="building">Mines: <span id="player-mines">0</span></div>
+            <div>Action Points: <span id="player-ap">3</span></div>
+            <button onclick="buildStructure('house')">Build House (35 Gold, 10 Wood, 10 stone)</button>
+            <button onclick="buildStructure('farm')">Build Farm (20 Gold, 40 Wood)</button>
+            <button onclick="buildStructure('mine')">Build Mine (50 Gold, 30 Stone)</button>
+            <button onclick="endTurn()">End Turn</button>
+        </div>
+        <div id="game-board"></div>
+        <div id="ai-info">
+            <h2>AI Empire</h2>
+            <div class="resource">Gold: <span id="ai-gold">100</span></div>
+            <div class="resource">Wood: <span id="ai-wood">50</span></div>
+            <div class="resource">Stone: <span id="ai-stone">30</span></div>
+            <div class="building">Houses: <span id="ai-houses">0</span></div>
+            <div class="building">Farms: <span id="ai-farms">0</span></div>
+            <div class="building">Mines: <span id="ai-mines">0</span></div>
+            <div>Action Points: <span id="ai-ap">3</span></div>
+        </div>
+    </div>
+    <div id="message-log"></div>
+    <script>
+        const board = document.getElementById('game-board');
+        const messageLog = document.getElementById('message-log');
+        const gridSize = 8;
+        const player = {
+            gold: 100, wood: 50, stone: 30,
+            houses: 0, farms: 0, mines: 0,
+            actionPoints: 3
+        };
+        const ai = {
+            gold: 100, wood: 50, stone: 30,
+            houses: 0, farms: 0, mines: 0,
+            actionPoints: 3
+        };
+        const resourceTypes = ['🌳', '🪨', '💰', ''];
+        const structures = {
+            player: { house: '🏠', farm: '🌾', mine: '⛏️' },
+            ai: { house: '🏘️', farm: '🌻', mine: '🏗️' }
+        };
+        let currentPlayer = 'player';
+
+        function createBoard() {
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', () => cellClick(cell));
+                const resourceType = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
+                cell.textContent = resourceType;
+                board.appendChild(cell);
+            }
+        }
+
+        function cellClick(cell) {
+            if (currentPlayer === 'player' && !isStructure(cell.textContent) && player.actionPoints > 0) {
+                collectResource(cell);
+            }
+        }
+
+        function isStructure(content) {
+            return Object.values(structures.player).includes(content) || Object.values(structures.ai).includes(content);
+        }
+
+        function collectResource(cell) {
+            const resource = cell.textContent;
+            if (resource === '🌳') {
+                player.wood += 10;
+                logMessage("Player collected 10 wood");
+            } else if (resource === '🪨') {
+                player.stone += 10;
+                logMessage("Player collected 5 stone");
+            } else if (resource === '💰') {
+                player.gold += 20;
+                logMessage("Player collected 20 gold");
+            } else {
+                return; // No resource to collect
+            }
+            cell.textContent = '';
+            player.actionPoints--;
+            updateDisplay();
+        }
+
+        function buildStructure(type) {
+            if (player.actionPoints <= 0) {
+                logMessage("Not enough action points");
+                return;
+            }
+            if (type === 'house' && player.gold >= 35 && player.wood >= 10 && player.stone >=10) {
+                player.gold -= 35;
+                player.wood -= 10;
+                player.stone -= 10;
+                player.houses++;
+                logMessage("Player built a house");
+            } else if (type === 'farm' && player.gold >= 20 && player.wood >= 40) {
+                player.gold -= 20;
+                player.wood -= 40;
+                player.farms++;
+                logMessage("Player built a farm");
+            } else if (type === 'mine' && player.gold >= 50 && player.stone >= 30) {
+                player.gold -= 50;
+                player.stone -= 30;
+                player.mines++;
+                logMessage("Player built a mine");
+            } else {
+                logMessage("Not enough resources to build " + type);
+                return;
+            }
+            player.actionPoints--;
+            updateDisplay();
+            placeStructure(type, 'player');
+        }
+
+        function placeStructure(type, owner) {
+            const emptyCells = Array.from(document.querySelectorAll('.cell')).filter(cell => cell.textContent === '');
+            if (emptyCells.length > 0) {
+                const cell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                cell.textContent = structures[owner][type];
+                cell.classList.add(owner === 'player' ? 'player-structure' : 'ai-structure');
+            }
+        }
+
+        function endTurn() {
+            currentPlayer = 'ai';
+            aiTurn();
+            generateResources();
+            resetActionPoints();
+            updateDisplay();
+            currentPlayer = 'player';
+        }
+
+        function aiTurn() {
+            while (ai.actionPoints > 0) {
+                const action = aiDecideAction();
+                if (action === 'collect') {
+                    aiCollectResources();
+                } else {
+                    aiBuildStructure(action);
+                }
+            }
+        }
+
+        function aiDecideAction() {
+            const actions = ['collect', 'house', 'farm', 'mine'];
+            const weights = [
+                1,
+                ai.gold >= 50 && ai.wood >= 30 ? 2 : 0,
+                ai.gold >= 30 && ai.wood >= 50 ? 2 : 0,
+                ai.gold >= 80 && ai.stone >= 50 ? 2 : 0
+            ];
+
+            // Adjust weights based on resource needs
+            if (ai.gold < 30) weights[0] += 2;
+            if (ai.wood < 30) weights[0] += 2;
+            if (ai.stone < 50) weights[0] += 2;
+
+            // Adjust weights based on building counts
+            if (ai.houses < 3) weights[1] += 1;
+            if (ai.farms < 2) weights[2] += 1;
+            if (ai.mines < 2) weights[3] += 1;
+
+            const totalWeight = weights.reduce((a, b) => a + b, 0);
+            let random = Math.random() * totalWeight;
+
+            for (let i = 0; i < actions.length; i++) {
+                if (random < weights[i]) return actions[i];
+                random -= weights[i];
+            }
+
+            return 'collect'; // Fallback
+        }
+
+        function aiBuildStructure(type) {
+            if (ai.actionPoints <= 0) return;
+            if (type === 'house' && ai.gold >= 50 && ai.wood >= 30) {
+                ai.gold -= 50;
+                ai.wood -= 30;
+                ai.houses++;
+                logMessage("AI built a house");
+            } else if (type === 'farm' && ai.gold >= 30 && ai.wood >= 50) {
+                ai.gold -= 30;
+                ai.wood -= 50;
+                ai.farms++;
+                logMessage("AI built a farm");
+            } else if (type === 'mine' && ai.gold >= 80 && ai.stone >= 50) {
+                ai.gold -= 80;
+                ai.stone -= 50;
+                ai.mines++;
+                logMessage("AI built a mine");
+            } else {
+                aiCollectResources();
+                return;
+            }
+            ai.actionPoints--;
+            placeStructure(type, 'ai');
+        }
+
+        function aiCollectResources() {
+            if (ai.actionPoints <= 0) return;
+            ai.gold += 20;
+            ai.wood += 10;
+            ai.stone += 5;
+            ai.actionPoints--;
+            logMessage("AI collected resources");
+        }
+
+        function generateResources() {
+            player.gold += player.houses * 10 + player.farms * 5 + player.mines * 15;
+            player.wood += player.farms * 10;
+            player.stone += player.mines * 5;
+            
+            ai.gold += ai.houses * 10 + ai.farms * 5 + ai.mines * 15;
+            ai.wood += ai.farms * 10;
+            ai.stone += ai.mines * 5;
+            
+            logMessage("Resources generated for both empires");
+        }
+
+        function resetActionPoints() {
+            player.actionPoints = 3;
+            ai.actionPoints = 3;
+            logMessage("Action points reset for both players");
+        }
+
+        function updateDisplay() {
+            document.getElementById('player-gold').textContent = player.gold;
+            document.getElementById('player-wood').textContent = player.wood;
+            document.getElementById('player-stone').textContent = player.stone;
+            document.getElementById('player-houses').textContent = player.houses;
+            document.getElementById('player-farms').textContent = player.farms;
+            document.getElementById('player-mines').textContent = player.mines;
+            document.getElementById('player-ap').textContent = player.actionPoints;
+
+            document.getElementById('ai-gold').textContent = ai.gold;
+            document.getElementById('ai-wood').textContent = ai.wood;
+            document.getElementById('ai-stone').textContent = ai.stone;
+            document.getElementById('ai-houses').textContent = ai.houses;
+            document.getElementById('ai-farms').textContent = ai.farms;
+            document.getElementById('ai-mines').textContent = ai.mines;
+            document.getElementById('ai-ap').textContent = ai.actionPoints;
+        }
+
+        function logMessage(message) {
+            const p = document.createElement('p');
+            p.textContent = message;
+            messageLog.appendChild(p);
+            messageLog.scrollTop = messageLog.scrollHeight;
+        }
+
+        createBoard();
+        updateDisplay();
+    </script>
+    <h3>
+        How to Play:
+    </h3>
+    <p>
+Simple, you have 3 actions in a turn, those actions can be spent doing one of two things. Collect a resouse from the ground, or bulid a buliding, which grants you more reasourses before a round. 
+How you win is by having the most amount of buildings created. 
+    </p>
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Random Image Generator</title>
+    </head>
+    <body>
+        <h1>Random Image Generator</h1>
+        <div id="image-container">
+            <img id="random-image" src="" alt="Random Image" height="450px">
+        </div>
+        <button onclick="generateRandomImage()">Generate a Random AI Image!</button>
+    
+        <script>
+            function generateRandomImage() {
+                var images = [
+                    'Fort.jpg',
+                    'F2.jpg',
+                    'Middevil1.png',
+                    'Wargame.jpg',
+                    'Wargame2.jpg', 
+                    'Spiderweb.jpg',
+                    'waterfall.jpg',
+                    'Cabbin.jpg',
+                    'Middevil2.png',
+                    'Forest.jpg',
+                    'Forest1.jpg',
+                    'Jungle.jpg',
+                    'Desert.jpg',
+                    'City1.jpg',
+                    'City2.jpg',
+                ];
+    
+                // Generate a random index to select a random image from the array
+                var randomIndex = Math.floor(Math.random() * images.length);
+    
+                // Set the source of the <img> element to the randomly selected image
+                var imgElement = document.getElementById('random-image');
+                imgElement.src = images[randomIndex];
+            }
+        </script>
+    </body>
+    <a href="index.html">Back to Home!</a>
+</body>
+</html>

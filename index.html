@@ -1,35 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title> Owen's Strategy</title>
+<title> Owen's Empire</title>
 
 </head>
 <body>
-    <h1>Welcome to Owen's strategy</h1>
+    <h1>Welcome to Owen's Emprie</h1>
     <style>
+       .container {
+          display: flex;
+        justify-content: center;
+         align-items: center;
+}
+        .R2{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
         body{
            background-color: black; 
         }
         p{
             color: white;
+            margin: 0 auto;
             text-align: center; 
+            max-width: 750px;
         }
         h1{
             color: white;
             text-align: center;
         }
-        h4{
+        h2{
             color: white;
             text-align: center;
         }
         #game-container {
-            text-align: right;
+            text-align: center;
+            position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
         }
         #game-board {
             display: grid;
             grid-template-columns: repeat(7, 50px);
             gap: 2px;
             margin-bottom: 20px;
+            margin-left: 37%;
         }
         .tile {
             width: 50px;
@@ -40,18 +59,23 @@
             align-items: center;
             font-weight: bold;
             cursor: pointer;
+            text-align: center;
         }
         .player { background-color: #4CAF50; color: white; }
         .enemy { background-color: #F44336; color: white; }
-        .neutral { background-color: #FFFFFF; }
+        .neutral { background-color: #ffffff; }
         .inactive { background-color: #333; }
         #restart-btn {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            margin-left: 50%;
+        }
+        a{
+            color: #ffffff;
         }
     </style>
-    <h4>About Me</h4>
+    <h2>About Me</h2>
     <p>
         I am Owen Dennee, a sophomore at Hermantown High School with a passion for logic, numbers, and strategic thinking. My analytical mindset drives my academic pursuits and extracurricular interests alike.
         As an avid motorsports enthusiast, I not only enjoy watching races but also actively participate in the sport. The technical aspects of racing, from vehicle dynamics to race strategy, fascinate me and align well with my logical approach to problem-solving.
@@ -60,19 +84,24 @@
         My affinity for numbers extends beyond the classroom. I find joy in quantitative analysis and using data to inform decisions. This love for mathematics and logic has led me to join the Hermantown FRC (FIRST Robotics Competition) team. As a team member, I contribute my planning and strategic skills to design, build, and program robots for competition.
         History, particularly military history, is another area that captivates my interest. I am fascinated by the strategic and tactical decisions made throughout history. Studying war tactics not only satisfies my curiosity about the past but also enhances my understanding of complex problem-solving in high-stakes situations. This interest in history extends beyond warfare, encompassing a broad appreciation for how past events shape our present world.
         My diverse interests in motorsports, soccer, robotics, and history all share common threads of strategy, planning, and analytical thinking. As I progress through high school, I look forward to further developing these skills and applying them to new challenges and opportunities.
+        Most of thes skills can be extremly helpful durring my future career. Some of the careers that I am currently thinking of going into are, software dev. lawyer, or computer enginer.
+        Some of the majors that I would be intrested in either be criminal studies, or computer science. 
 </p>
-<img src="download.jpg" height="450px">
-<p>
-</p>
-<img src="F2.jpg" height="450px">
-<img src="Wargame.jpg" height="450">
+<div class="container" >
+    <img src="Me.jpg" height="450px">
+  </div>
+<div class="R2">
+    <img src="Fort.jpg" height="450px">
+    <img src="Wargame2.jpg" height="450px">
+  </div>
     <div id="game-container">
         <h2>Capture more tiles than the enemy!</h2>
-        <div id="game-board"></div>
+       
         <p id="status"></p>
-        <button id="restart-btn">Restart Game</button>
-    </div>
 
+    </div> 
+    <div id="game-board"></div>
+        <button id="restart-btn">Restart Game</button>
     <script>
         const board = document.getElementById('game-board');
         const status = document.getElementById('status');
@@ -82,7 +111,7 @@
         const boardLayout = [
             1,1,1,1,1,1,0,
             1,0,1,1,0,1,0,
-            1,1,1,0,1,1,0,
+            1,1,1,0,1,1,1,
             1,1,1,1,1,1,0,
             0,1,1,1,1,1,0,
         ];
@@ -171,8 +200,13 @@
         restartBtn.addEventListener('click', restartGame);
 
         restartGame(); // Initial game setup
+
     </script>
-    <video src="Mongolian.mp4" height="500" controls poster="Marching Mongolian army">
+        <p>
+        How to play: How to win the game is simple, capture more squares then the enemy! You do that by selecting a white square, after you click on a white square the computer will capture a square for its self. Then you go again repeating the prosses. 
+        </p>
+    <a href="Adiffrentgame.html">A Diffrent Game!!</a>
+    <video src="Marching.mp4" height="500" controls poster="Marching Mongolian army">
       </video>
       
 </body>
